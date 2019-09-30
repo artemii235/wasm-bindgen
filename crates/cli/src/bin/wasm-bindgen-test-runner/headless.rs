@@ -145,7 +145,7 @@ pub fn run(server: &SocketAddr, shell: &Shell) -> Result<(), Error> {
     //       information.
     shell.status("Waiting for test to finish...");
     let start = Instant::now();
-    let max = Duration::new(20, 0);
+    let max = Duration::new(120, 0);
     while start.elapsed() < max {
         if client.text(&id, &output)?.contains("test result: ") {
             break;

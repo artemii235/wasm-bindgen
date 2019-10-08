@@ -100,6 +100,16 @@ fn rmain() -> Result<(), Error> {
     }
     let headless = env::var("NO_HEADLESS").is_err();
     let debug = env::var("WASM_BINDGEN_NO_DEBUG").is_err();
+    let timeout = match env::var("HEADLESS_TIMEOUT") {
+        Ok(t) => match t.parse() {
+            Ok(t) => t,
+            Err(_) => {
+                println!("failed to parse HEADLESS_TIMEOUT as u64");
+                return Ok(());
+            }
+        },
+        Err(_) => 20,
+    };
 
     // Gracefully handle requests to execute only node or only web tests.
     if env::var_os("WASM_BINDGEN_TEST_ONLY_NODE").is_some() {
@@ -180,6 +190,6 @@ integration test.\
     }
 
     thread::spawn(|| srv.run());
-    headless::run(&addr, &shell)?;
+    headless::run(&addr, &shell, timeout)?;
     Ok(())
 }

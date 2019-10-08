@@ -55,7 +55,7 @@ pub struct LegacyNewSessionParameters {
 /// binary, controlling it, running tests, scraping output, displaying output,
 /// etc. It will return `Ok` if all tests finish successfully, and otherwise it
 /// will return an error if some tests failed.
-pub fn run(server: &SocketAddr, shell: &Shell) -> Result<(), Error> {
+pub fn run(server: &SocketAddr, shell: &Shell, timeout: u64) -> Result<(), Error> {
     let driver = Driver::find()?;
     let mut drop_log: Box<dyn FnMut()> = Box::new(|| ());
     let driver_url = match driver.location() {
@@ -145,7 +145,7 @@ pub fn run(server: &SocketAddr, shell: &Shell) -> Result<(), Error> {
     //       information.
     shell.status("Waiting for test to finish...");
     let start = Instant::now();
-    let max = Duration::new(120, 0);
+    let max = Duration::new(timeout, 0);
     while start.elapsed() < max {
         if client.text(&id, &output)?.contains("test result: ") {
             break;
@@ -170,7 +170,8 @@ pub fn run(server: &SocketAddr, shell: &Shell) -> Result<(), Error> {
         // output, so we shouldn't need the driver logs to get printed.
         drop_log();
     } else {
-        println!("failed to detect test as having been run");
+        println!("failed to detect test as having been run in {} seconds", timeout);
+        println!("increase/set HEADLESS_TIMEOUT if your tests require more time to run");
         if output.len() > 0 {
             println!("output div contained:\n{}", tab(&output));
         }
